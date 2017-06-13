@@ -15,9 +15,9 @@ long czas_wlaczenia_swiatla = 1000;//720000; //12 h wlaczone swiatlo:
 int PINswiatlo = 7;
 int PINchlodzenie = 4;
 long czas_wlaczenia_chlodzenia =2000; //60000;
-float wilgotnosc_powietrza;
-float temperatura_powietrza;
-int czujnikDHT11 = A2;
+int wilgotnosc_powietrza;
+int temperatura_powietrza;
+int czujnikDHT11 = A5;
 
 #define DHTPIN            2
 #define DHTTYPE           DHT11     // DHT 11 (AM2302)
@@ -50,9 +50,10 @@ void CzujnikDHT11()
 {
   //Odczyt temperatury i wilgotności z czujnika DHT11
   lcd.clear();
-  wilgotnosc_powietrza = dht.readHumidity();
-  temperatura_powietrza = dht.readTemperature();
-
+  
+wilgotnosc_powietrza = dht.readHumidity();
+temperatura_powietrza = dht.readTemperature();
+//  Serial.println(Raw_temperatura_powietrza);
 
   lcd.setCursor(0, 0); lcd.print("Temp: ");  lcd.print(temperatura_powietrza); lcd.print(" *C"); //Wydruk Temperatury Powietrza na wyswietlaczu LCD
   lcd.setCursor(0, 1); lcd.print("Wilg: ");  lcd.print(wilgotnosc_powietrza); lcd.print(" %"); //Wydruk Wilgotnosci powietrza na wyswietlaczu LCD
@@ -78,7 +79,8 @@ void wilgotnosc_gleby()
     // mapowanie wartosci odczytu do skali wilgotnosc 0 do 100%:
 
     int wilgotnosc_gleby = map(wartosc_odczytu, 1023, 0, 0, 100);
-
+    // wypisanie na wyswtietlaczu LCD
+      lcd.setCursor(0, 10); lcd.print("Soil: ");  lcd.print(wilgotnosc_gleby); lcd.print(" %"); //Wydruk Wilgotnosci gleby na wyswietlaczu LCD
     // sumujemy odczyty
     suma_odczytow += wilgotnosc_gleby;
 
@@ -116,4 +118,5 @@ void loop()
   swiatlo();
   chlodzenie();
 }
+
 
