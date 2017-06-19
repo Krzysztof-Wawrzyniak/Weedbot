@@ -9,29 +9,27 @@
 #include <Adafruit_Sensor.h>
 
 //Deklaracja zmiennych
+//Piny urządzeń
+int PINswiatlo = 3;
+int PINpompa = 4;
+int PINwiatrakWewnetrzny = 5;
+int PINwiatrakZewnetrzny = 6;
+int czujnikDHT11 = A0;
 
-int pompa = 3;
-long czas_wlaczenia_swiatla = 1000;//720000; //12 h wlaczone swiatlo:
-int PINswiatlo = 7;
-int PINchlodzenie = 4;
-long czas_wlaczenia_chlodzenia =2000; //60000;
-int wilgotnosc_powietrza;
-int temperatura_powietrza;
-int czujnikDHT11 = A5;
+//Zmienne pomocnicze
+
+long czas_podlewania = 50000; //Trzeba dostosowac do przepustowosci pompy:
+long czas_wlaczenia_chlodzenia = 20000; //60000;
+
+//Diody kolorowe sygnalizujace prace urzadzen
+int Dioda_oswietlenia = 8;
+int Dioda_pompy = 9;
+int Dioda_wiatraka_wewnetrznego = 10;
+int Dioda_wiatraka_zewnetrznego = 11; 
 
 #define DHTPIN            2
 #define DHTTYPE           DHT11     // DHT 11 (AM2302)
 DHT dht(DHTPIN, DHTTYPE);
-
-// czas pomiedzy pomiarami 5min - 300.000ms
-#define ODSTEP 1000
-// limit po ilu odczytach liczmy srednia
-#define LIMIT_ODCZYTOW 20
-
-// informacje o odczytach
-int suma_odczytow = 0;
-int liczba_odczytow = 0;
-unsigned long czas_poprzedni = 0;
 
 //Inicjalizacja wyswietlacza
 LiquidCrystal_I2C lcd(0x27, 16, 2); // wyswietlacz LCD 16 kolumn i 2 wiersze na adresie 0x27
@@ -43,80 +41,21 @@ void setup()
   dht.begin();
   Serial.begin(9600);
   pinMode(czujnikDHT11, INPUT);
-  pinMode(pompa, OUTPUT);
+  pinMode(PINpompa, OUTPUT);
+  pinMode(PINswiatlo, OUTPUT);
+  pinMode(PINwiatrakWewnetrzny, OUTPUT);
+  pinMode(PINwiatrakZewnetrzny, OUTPUT);
+  pinMode(Dioda_oswietlenia, OUTPUT);
+  pinMode(Dioda_pompy, OUTPUT);
+  pinMode(Dioda_wiatraka_wewnetrznego, OUTPUT);
+  pinMode(Dioda_wiatraka_zewnetrznego,OUTPUT); 
 
-}
-void CzujnikDHT11()
-{
-  //Odczyt temperatury i wilgotności z czujnika DHT11
-  lcd.clear();
-  
-wilgotnosc_powietrza = dht.readHumidity();
-temperatura_powietrza = dht.readTemperature();
-//  Serial.println(Raw_temperatura_powietrza);
-
-  lcd.setCursor(0, 0); lcd.print("Temp: ");  lcd.print(temperatura_powietrza); lcd.print(" *C"); //Wydruk Temperatury Powietrza na wyswietlaczu LCD
-  lcd.setCursor(0, 1); lcd.print("Wilg: ");  lcd.print(wilgotnosc_powietrza); lcd.print(" %"); //Wydruk Wilgotnosci powietrza na wyswietlaczu LCD
-  delay(5000);
-}
-
-void wilgotnosc_gleby()
-{
-  // czas liczony od momentu wlaczenia urzadzenia
-  unsigned long czas_aktualny = millis();
-
-  // sprawdza czy uplynal juz okreslony czas miedzy pomiarami
-  if (czas_aktualny - czas_poprzedni > ODSTEP)
-  {
-    czas_poprzedni = czas_aktualny;
-
-    // dodajemy odczyt
-    liczba_odczytow += 1;
-
-    // Odczytaj wartosc z czujnika wilgotnosci gleby:
-    int  wartosc_odczytu = analogRead(A0);
-
-    // mapowanie wartosci odczytu do skali wilgotnosc 0 do 100%:
-
-    int wilgotnosc_gleby = map(wartosc_odczytu, 1023, 0, 0, 100);
-    // wypisanie na wyswtietlaczu LCD
-      lcd.setCursor(0, 10); lcd.print("Soil: ");  lcd.print(wilgotnosc_gleby); lcd.print(" %"); //Wydruk Wilgotnosci gleby na wyswietlaczu LCD
-    // sumujemy odczyty
-    suma_odczytow += wilgotnosc_gleby;
-
-    int srednia = ceil(suma_odczytow / liczba_odczytow);
-    // zerowanie licznikow
-    liczba_odczytow = suma_odczytow = 0;
-    if (srednia < 50)
-    {
-      digitalWrite(pompa, HIGH);
-      delay(5000);
-      digitalWrite(pompa, LOW);
-    }
-  }
-}
-void swiatlo()
-{
-  digitalWrite(PINswiatlo, HIGH);
-  delay(czas_wlaczenia_swiatla);
-  digitalWrite(PINswiatlo, LOW);
-}
-
-void chlodzenie()
-{
-  if (temperatura_powietrza > 30)
-  {
-    digitalWrite(PINchlodzenie, HIGH);
-    delay(czas_wlaczenia_chlodzenia);
-    digitalWrite(PINchlodzenie, LOW);
-  }
 }
 void loop()
 {
   CzujnikDHT11();
   wilgotnosc_gleby();
-  swiatlo();
   chlodzenie();
+  swiatlo();
+  podlewanie();
 }
-
-
