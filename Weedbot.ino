@@ -16,11 +16,6 @@ int PINwiatrakWewnetrzny = 5;
 int PINwiatrakZewnetrzny = 6;
 int czujnikDHT11 = A0;
 
-//Zmienne pomocnicze
-
-long czas_podlewania = 50000; //Trzeba dostosowac do przepustowosci pompy:
-long czas_wlaczenia_chlodzenia = 20000; //60000;
-
 //Diody kolorowe sygnalizujace prace urzadzen
 int Dioda_oswietlenia = 8;
 int Dioda_pompy = 9;

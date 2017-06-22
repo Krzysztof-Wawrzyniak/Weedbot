@@ -42,9 +42,7 @@ void wilgotnosc_gleby()
     liczba_odczytow = suma_odczytow = 0;
     if (srednia < 50)
     {
-      digitalWrite(PINpompa, HIGH);
-      delay(czas_podlewania);
-      digitalWrite(PINpompa, LOW);
+      podlewanie();
     }
   }
 }
